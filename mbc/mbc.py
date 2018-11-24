@@ -17,6 +17,8 @@ import sys
 import os
 import pickle
 
+# Just a magic number to distinguish different formats
+MAGIC=0x1
 
 def encrypt(infilename=None, url=None):
 
@@ -104,6 +106,8 @@ def decrypt(infilename=None, url=None):
     if not header or header != 'mbc':
         raise ValueError('Invalid mbc cipher file')
 
+    magicnum = pickle.load(fh)
+
     ciphertext = pickle.load(fh)
 
     fh.close()
@@ -159,6 +163,9 @@ def write(outfile, data):
 
     # write the header
     pickle.dump('mbc', fh)
+
+    # write the magic number
+    pickle.dump(MAGIC, fh)
 
     # write the data
     pickle.dump(data, fh)
