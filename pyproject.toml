@@ -6,6 +6,8 @@ authors = ["Jeff Crawford <jcrawford888@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
+requests = "^2.20"
+html2text = "^2018.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
