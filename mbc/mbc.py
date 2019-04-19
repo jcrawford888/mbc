@@ -172,20 +172,3 @@ def write(outfile, data):
 
     fh.close()
 
-
-if __name__ == '__main__':
-    # basic test
-    infilename = 'mbctest_clear.txt'
-    fh = open(infilename, 'w')
-    fh.write('This is a secret message.')
-    fh.close()
-    url = 'http://www.unmuseum.org/bealepap.htm'
-    print('using: (%s) as the book' % url)
-    outdata = encrypt(infilename, url)
-    print('Here are the enciphered offsets:')
-    print(outdata)
-    outfilename = 'mbctest.mbc'
-    if os.path.isfile(outfilename):
-        # delete the previous output file
-        os.unlink(outfilename)
-    write(outfilename, outdata)
