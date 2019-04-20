@@ -80,7 +80,7 @@ def encrypt(infilename=None, url=None):
                     if looped and offset >= offsetorig:
                         # looped once and couldn't find a character in the book to encode the message character, abort
                         raise ValueError(
-                            "Couldn't find a character in the book to encode the message character {}. Find a bigger book. Aborting.".format(ch))
+                            f"Couldn't find a character in the book to encode the message character {ch}. Find a bigger book. Aborting.")
 
                     if ch == book[offset]:
                         # found the character we need
@@ -110,7 +110,7 @@ def decrypt(infilename=None, url=None):
         raise ValueError('Missing input file')
 
     if not os.path.isfile(infilename):
-        raise ValueError('Unable to open file: {}'.format(infilename))
+        raise ValueError(f'Unable to open file: {infilename}')
 
     fh = open(infilename, 'rb')
 
@@ -120,6 +120,9 @@ def decrypt(infilename=None, url=None):
 
     # We may use this later if we have different versions of the output format
     magicnum = pickle.load(fh)
+
+    if magicnum != MAGIC:
+        raise ValueError("Bad Magic Number")
 
     ciphertext = pickle.load(fh)
 
@@ -135,16 +138,16 @@ def decrypt(infilename=None, url=None):
     if booklen == 0:
         raise ValueError('Book is empty')
 
-    messagearr = []
+    message_arr = []
     for offset in ciphertext:
 
         if offset >= booklen or offset < 0:
             raise ValueError(
-                'Bad offset ({}).  Out of bounds for this book'.format(offset))
+                f'Bad offset ({offset}).  Out of bounds for this book')
 
-        messagearr.append(book[offset])
+        message_arr.append(book[offset])
 
-    message = ''.join(messagearr)
+    message = ''.join(message_arr)
 
     return message
 
@@ -177,7 +180,7 @@ def write(outfile, data):
     """
 
     if os.path.isfile(outfile):
-        raise ValueError('File {} already exists. aborting.'.format(outfile))
+        raise ValueError(f'File {outfile} already exists. aborting.')
 
     fh = open(outfile, 'wb')
 
