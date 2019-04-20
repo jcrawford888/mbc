@@ -33,19 +33,19 @@ def encrypt(infilename=None, url=None):
     :return: array of integer offsets into the 'book'
     """
     if not url:
-        raise ValueError('Missing url')
+        raise ValueError("Missing url")
 
     if not infilename:
-        raise ValueError('Missing input file')
+        raise ValueError("Missing input file")
 
-    fh = open(infilename, 'r')
+    fh = open(infilename, "r")
     lines = []
     for line in fh:
         lines.append(line)
 
     fh.close()
 
-    message = ' '.join(lines)
+    message = " ".join(lines)
 
     try:
         book = __prepare_book(url)
@@ -80,7 +80,8 @@ def encrypt(infilename=None, url=None):
                     if looped and offset >= offsetorig:
                         # looped once and couldn't find a character in the book to encode the message character, abort
                         raise ValueError(
-                            f"Couldn't find a character in the book to encode the message character {ch}. Find a bigger book. Aborting.")
+                            f"Couldn't find a character in the book to encode the message character {ch}. Find a bigger book. Aborting."
+                        )
 
                     if ch == book[offset]:
                         # found the character we need
@@ -104,19 +105,19 @@ def decrypt(infilename=None, url=None):
     :return: string containing the decrypted message
     """
     if not url:
-        raise ValueError('Missing url')
+        raise ValueError("Missing url")
 
     if not infilename:
-        raise ValueError('Missing input file')
+        raise ValueError("Missing input file")
 
     if not os.path.isfile(infilename):
-        raise ValueError(f'Unable to open file: {infilename}')
+        raise ValueError(f"Unable to open file: {infilename}")
 
-    fh = open(infilename, 'rb')
+    fh = open(infilename, "rb")
 
     header = pickle.load(fh)
-    if not header or header != 'mbc':
-        raise ValueError('Invalid mbc cipher file')
+    if not header or header != "mbc":
+        raise ValueError("Invalid mbc cipher file")
 
     # We may use this later if we have different versions of the output format
     magicnum = pickle.load(fh)
@@ -136,18 +137,17 @@ def decrypt(infilename=None, url=None):
     booklen = len(book)
 
     if booklen == 0:
-        raise ValueError('Book is empty')
+        raise ValueError("Book is empty")
 
     message_arr = []
     for offset in ciphertext:
 
         if offset >= booklen or offset < 0:
-            raise ValueError(
-                f'Bad offset ({offset}).  Out of bounds for this book')
+            raise ValueError(f"Bad offset ({offset}).  Out of bounds for this book")
 
         message_arr.append(book[offset])
 
-    message = ''.join(message_arr)
+    message = "".join(message_arr)
 
     return message
 
@@ -156,7 +156,6 @@ def __prepare_book(urllink):
     # try to get the data from the url
 
     raw = requests.get(urllink)
-
 
     handler = html2text.HTML2Text()
     handler.ignore_images = True
@@ -180,12 +179,12 @@ def write(outfile, data):
     """
 
     if os.path.isfile(outfile):
-        raise ValueError(f'File {outfile} already exists. aborting.')
+        raise ValueError(f"File {outfile} already exists. aborting.")
 
-    fh = open(outfile, 'wb')
+    fh = open(outfile, "wb")
 
     # write the header
-    pickle.dump('mbc', fh)
+    pickle.dump("mbc", fh)
 
     # write the magic number
     pickle.dump(MAGIC, fh)
