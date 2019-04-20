@@ -23,6 +23,66 @@ import pickle
 MAGIC = 0x1
 
 
+def encrypts(message=None, url=None):
+    """
+    Encrypt the message string specified in the parameters. Use the contents of the url as the 'book' for
+    encrypting the contents. NOTE: htmls tags are removed from the book contents and all text is lower-cased.
+
+    :param message: parameter containing the message to encrypt
+    :param url: the url pointing to a page of text that will be used as the 'book'
+    :return: array of integer offsets into the 'book'
+    """
+
+    if not url:
+        raise ValueError("Missing url")
+
+    try:
+        book = __prepare_book(url)
+    except Exception:
+        raise
+
+    offsetmap = {}
+    offsets = []
+    for ch in message:
+        ch = ch.lower()
+
+        encoded = False
+        while not encoded:
+            # find a random offset in the book then search forward to find the character
+            offset = random.randint(0, len(book) - 1)
+
+            if ch != book[offset]:
+                # hunt forward for a character (loop to beginning if not found)
+                # abort if we looped and hit this index again
+                offsetorig = offset
+                looped = False
+
+                while 1:
+                    offset = offset + 1
+
+                    if offset >= len(book):
+                        looped = True
+                        offset = 0
+
+                    if looped and offset >= offsetorig:
+                        # looped once and couldn't find a character in the book to encode the message character, abort
+                        raise ValueError(
+                            f"Could not find a character in the book to encode the message character '{ch}'."
+                        )
+
+                    if ch == book[offset]:
+                        # found the character we need
+                        break
+
+            # make sure we don't use the same offset more than once in the encoded message
+            if offset not in offsetmap:
+                encoded = True
+                offsetmap[offset] = 1
+                offsets.append(offset)
+
+    return offsets
+
+
 def encrypt(infilename=None, url=None):
     """
     Encrypt the contents of the file specified in the parameters. Use the contents of the url as the 'book' for
@@ -47,53 +107,42 @@ def encrypt(infilename=None, url=None):
 
     message = " ".join(lines)
 
+    return encrypts(message, url)
+
+
+def decrypts(cipher_arr=None, url=None):
+    """
+    Decrypt an array of cipher offsets that has been encoded using mbc.
+
+    :param cipher_arr: The cipher array encrypted using the encryption routine
+    :param url: same url as used by the encryption routine
+    :return: string containing the decrypted message
+    """
+    if not url:
+        raise ValueError("Missing url")
+
+    if not cipher_arr:
+        raise ValueError("Missing cipher array")
+
     try:
         book = __prepare_book(url)
-    except:
+    except Exception:
         raise
 
-    booklen = len(book)
+    if len(book) == 0:
+        raise ValueError("Book is empty")
 
-    offsetmap = {}
-    offsets = []
-    for ch in message:
-        ch = ch.lower()
+    message_arr = []
+    for offset in cipher_arr:
 
-        encoded = False
-        while not encoded:
-            # find a random offset in the book then search forward to find the character
-            offset = random.randint(0, booklen - 1)
+        if offset >= len(book) or offset < 0:
+            raise ValueError(f"Bad offset ({offset}).  Out of bounds for this book")
 
-            if ch != book[offset]:
-                # hunt forward for a character (loop to beginning if not found)
-                # abort if we looped and hit this index again
-                offsetorig = offset
-                looped = False
+        message_arr.append(book[offset])
 
-                while 1:
-                    offset = offset + 1
+    message = "".join(message_arr)
 
-                    if offset >= booklen:
-                        looped = True
-                        offset = 0
-
-                    if looped and offset >= offsetorig:
-                        # looped once and couldn't find a character in the book to encode the message character, abort
-                        raise ValueError(
-                            f"Couldn't find a character in the book to encode the message character {ch}. Find a bigger book. Aborting."
-                        )
-
-                    if ch == book[offset]:
-                        # found the character we need
-                        break
-
-            # make sure we don't use the same offset more than once in the encoded message
-            if offset not in offsetmap:
-                encoded = True
-                offsetmap[offset] = 1
-                offsets.append(offset)
-
-    return offsets
+    return message
 
 
 def decrypt(infilename=None, url=None):
@@ -113,43 +162,20 @@ def decrypt(infilename=None, url=None):
     if not os.path.isfile(infilename):
         raise ValueError(f"Unable to open file: {infilename}")
 
-    fh = open(infilename, "rb")
+    with open(infilename, "rb") as fh:
+        header = pickle.load(fh)
+        if not header or header != "mbc":
+            raise ValueError("Invalid mbc cipher file")
 
-    header = pickle.load(fh)
-    if not header or header != "mbc":
-        raise ValueError("Invalid mbc cipher file")
+        # We may use this later if we have different versions of the output format
+        magicnum = pickle.load(fh)
 
-    # We may use this later if we have different versions of the output format
-    magicnum = pickle.load(fh)
+        if magicnum != MAGIC:
+            raise ValueError("Bad Magic Number")
 
-    if magicnum != MAGIC:
-        raise ValueError("Bad Magic Number")
+        cipher_arr = pickle.load(fh)
 
-    ciphertext = pickle.load(fh)
-
-    fh.close()
-
-    try:
-        book = __prepare_book(url)
-    except:
-        raise
-
-    booklen = len(book)
-
-    if booklen == 0:
-        raise ValueError("Book is empty")
-
-    message_arr = []
-    for offset in ciphertext:
-
-        if offset >= booklen or offset < 0:
-            raise ValueError(f"Bad offset ({offset}).  Out of bounds for this book")
-
-        message_arr.append(book[offset])
-
-    message = "".join(message_arr)
-
-    return message
+    return decrypts(cipher_arr, url)
 
 
 def __prepare_book(urllink):
