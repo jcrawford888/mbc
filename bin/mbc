@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+
+import mbc
+import argparse
+import sys
+
+parser = argparse.ArgumentParser(description="Modernized Beale Cipher tool")
+
+subparsers = parser.add_subparsers(dest="cmd", help="commands")
+
+help_url = "url to use as the book for encryption/decryption"
+
+encrypt_parser = subparsers.add_parser(
+    "encrypt", help="encrypt the message from the file or string"
+)
+encrypt_parser.add_argument(
+    "-s", action="store", dest="message", help="string based message to be encrypted"
+)
+encrypt_parser.add_argument(
+    "-f",
+    action="store",
+    dest="infilename",
+    help="name of the input file holding a message to encrypt",
+)
+encrypt_parser.add_argument("url", help=help_url)
+encrypt_parser.add_argument(
+    "-o",
+    required=True,
+    action="store",
+    dest="outfilename",
+    help="name of the output file to hold the encrypted data",
+)
+
+decrypt_parser = subparsers.add_parser(
+    "decrypt", help="decrypt the message from file or array"
+)
+decrypt_parser.add_argument("url", help=help_url)
+decrypt_parser.add_argument(
+    "-f",
+    action="store",
+    dest="infilename",
+    help="name of the input file holding ciphertext to decrypt",
+)
+decrypt_parser.add_argument(
+    "-o",
+    action="store",
+    dest="outfilename",
+    help="output file to hold the decrypted message",
+)
+
+
+# print(parser.parse_args())
+
+
+arg_params = parser.parse_args()
+
+infilename = arg_params.infilename
+outfilename = arg_params.outfilename
+url = arg_params.url
+
+
+def write_clear(outfilename, data):
+    # write the clear text message to a file
+    if outfilename:
+        fh = open(outfilename, "w")
+        for line in data:
+            fh.write(line)
+        fh.close()
+    else:
+        print("".join(data))
+
+
+if not url:
+    print("ERROR: Missing url")
+    sys.exit(2)
+
+if arg_params.cmd == "encrypt":
+    message = arg_params.message
+    if not infilename and not message:
+        print("ERROR: Missing input filename or message string")
+        sys.exit(2)
+
+    # encryption mode, the infile is clear text
+    outdata = None
+    if infilename:
+        outdata = mbc.encrypt(infilename, url)
+    elif message:
+        outdata = mbc.encrypts(message, url)
+
+    if outfilename:
+        mbc.write(outfilename, outdata)
+        print('All Done!')
+    else:
+        print(outdata)
+
+elif arg_params.cmd == "decrypt":
+    if infilename:
+        outdata = mbc.decrypt(infilename, url)
+        if outfilename:
+            write_clear(outfilename, outdata)
+            print('All Done!')
+        else:
+            print(outdata)
+    else:
+        print("ERROR: Missing input filename")
+        sys.exit(2)
+
+else:
+    print(f"ERROR: Unknown Command: {arg_params.cmd}")
+    sys.exit(2)
+

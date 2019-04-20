@@ -18,6 +18,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    scripts=["bin/mbc"],
     install_requires=["requests", "html2text"],
-    python_requires="~3.6",
+    python_requires=">=3.6",
 )
