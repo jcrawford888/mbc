@@ -4,7 +4,7 @@ import os
 
 
 def test_version():
-    assert mbc.__version__ == '0.0.1'
+    assert mbc.__version__ == '0.1.0'
 
 
 def test_encrypt_decrypt():

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="mbc",
-    version="0.0.1",
+    version="0.1.0",
     author="Jeff Crawford",
     author_email="jcrawford888@gmail.com",
     description="A Modernized Beale Cipher encryption/decryption module",
