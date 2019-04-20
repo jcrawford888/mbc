@@ -33,6 +33,9 @@ def encrypts(message=None, url=None):
     :return: array of integer offsets into the 'book'
     """
 
+    if not message:
+        raise ValueError("Missing message to encrypt")
+
     if not url:
         raise ValueError("Missing url")
 
