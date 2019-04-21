@@ -89,7 +89,7 @@ if arg_params.cmd == "encrypt":
 
     if outfilename:
         mbc.write(outfilename, outdata)
-        print('All Done!')
+        print("All Done!")
     else:
         print(outdata)
 
@@ -98,7 +98,7 @@ elif arg_params.cmd == "decrypt":
         outdata = mbc.decrypt(infilename, url)
         if outfilename:
             write_clear(outfilename, outdata)
-            print('All Done!')
+            print("All Done!")
         else:
             print(outdata)
     else:
@@ -108,4 +108,3 @@ elif arg_params.cmd == "decrypt":
 else:
     print(f"ERROR: Unknown Command: {arg_params.cmd}")
     sys.exit(2)
-
