@@ -4,6 +4,10 @@ import mbc
 import argparse
 import sys
 
+ALG_FAST = 1
+ALG_FLEX = 2
+ALG_STRICT = 3
+
 parser = argparse.ArgumentParser(description="Modernized Beale Cipher tool")
 
 subparsers = parser.add_subparsers(dest="cmd", help="commands")
@@ -19,7 +23,7 @@ encrypt_parser.add_argument(
 encrypt_parser.add_argument(
     "-f",
     action="store",
-    dest="infilename",
+    dest="in_filename",
     help="name of the input file holding a message to encrypt",
 )
 encrypt_parser.add_argument("url", help=help_url)
@@ -27,8 +31,23 @@ encrypt_parser.add_argument(
     "-o",
     required=True,
     action="store",
-    dest="outfilename",
+    dest="out_filename",
     help="name of the output file to hold the encrypted data",
+)
+encrypt_parser.add_argument(
+    "--fast",
+    action="store_true",
+    help="Use the \"fast\" algorithm. All characters of the clear text are lower cased.",
+)
+encrypt_parser.add_argument(
+    "--flex",
+    action="store_true",
+    help="Use the \"flex\" algorithm. Match letter case but fall back to lowercase if necessary. (default)",
+)
+encrypt_parser.add_argument(
+    "--strict",
+    action="store_true",
+    help="Use the \"strict\" algorithm. Match letter case and fail if the capital letter can't be found in the book.",
 )
 
 decrypt_parser = subparsers.add_parser(
@@ -38,31 +57,34 @@ decrypt_parser.add_argument("url", help=help_url)
 decrypt_parser.add_argument(
     "-f",
     action="store",
-    dest="infilename",
-    help="name of the input file holding ciphertext to decrypt",
+    dest="in_filename",
+    help="name of the input file holding cipher text to decrypt",
 )
 decrypt_parser.add_argument(
     "-o",
     action="store",
-    dest="outfilename",
+    dest="out_filename",
     help="output file to hold the decrypted message",
 )
-
 
 # print(parser.parse_args())
 
 
 arg_params = parser.parse_args()
 
-infilename = arg_params.infilename
-outfilename = arg_params.outfilename
+if len(sys.argv) == 1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+
+in_filename = arg_params.in_filename
+out_filename = arg_params.out_filename
 url = arg_params.url
 
 
-def write_clear(outfilename, data):
+def write_clear(out_name, data):
     # write the clear text message to a file
-    if outfilename:
-        fh = open(outfilename, "w")
+    if out_name:
+        fh = open(out_name, "w")
         for line in data:
             fh.write(line)
         fh.close()
@@ -76,31 +98,41 @@ if not url:
 
 if arg_params.cmd == "encrypt":
     message = arg_params.message
-    if not infilename and not message:
+    if not in_filename and not message:
         print("ERROR: Missing input filename or message string")
         sys.exit(2)
 
-    # encryption mode, the infile is clear text
-    outdata = None
-    if infilename:
-        outdata = mbc.encrypt(infilename, url)
-    elif message:
-        outdata = mbc.encrypts(message, url)
+    method = ALG_FLEX
+    if arg_params.fast:
+        method = ALG_FAST
 
-    if outfilename:
-        mbc.write(outfilename, outdata)
+    if arg_params.flex:
+        method = ALG_FAST
+
+    if arg_params.strict:
+        method = ALG_STRICT
+
+    # encryption mode, the infile is clear text
+    out_data = None
+    if in_filename:
+        out_data = mbc.encrypt(in_filename, url, method)
+    elif message:
+        out_data = mbc.encrypts(message, url, method)
+
+    if out_filename:
+        mbc.write(out_filename, out_data, method)
         print("All Done!")
     else:
-        print(outdata)
+        print(out_data)
 
 elif arg_params.cmd == "decrypt":
-    if infilename:
-        outdata = mbc.decrypt(infilename, url)
-        if outfilename:
-            write_clear(outfilename, outdata)
+    if in_filename:
+        out_data = mbc.decrypt(in_filename, url)
+        if out_filename:
+            write_clear(out_filename, out_data)
             print("All Done!")
         else:
-            print(outdata)
+            print(out_data)
     else:
         print("ERROR: Missing input filename")
         sys.exit(2)
