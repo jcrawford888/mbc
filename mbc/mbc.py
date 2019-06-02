@@ -53,7 +53,7 @@ def encrypts(message=None, url=None, method=METHOD_FLEX):
     except Exception:
         raise
 
-    def _encode_char(ch, book):
+    def _encode_char(ch, book, offsetmap):
         while True:
             # find a random offset in the book then search forward to find the character
             offset = random.randint(0, len(book) - 1)
@@ -89,10 +89,10 @@ def encrypts(message=None, url=None, method=METHOD_FLEX):
         if method == METHOD_FAST:
             ch = ch.lower()
 
-        offset = _encode_char(ch, book)
+        offset = _encode_char(ch, book, offsetmap)
         if offset < 0 and method == METHOD_FLEX:
             # try again with lower cased char
-            offset = _encode_char(ch.lower(), book)
+            offset = _encode_char(ch.lower(), book, offsetmap)
 
         if offset < 0:
             raise ValueError(
