@@ -54,6 +54,7 @@ def encrypts(message=None, url=None, method=METHOD_FLEX):
         raise
 
     def _encode_char(ch, book, offsetmap):
+        attempts = 0
         while True:
             # find a random offset in the book then search forward to find the character
             offset = random.randint(0, len(book) - 1)
@@ -82,6 +83,11 @@ def encrypts(message=None, url=None, method=METHOD_FLEX):
             # make sure we don't use the same offset more than once in the encoded message
             if offset not in offsetmap:
                 return offset
+
+            attempts += 1
+            if attempts >= 3:
+                # prevent infinite loop if char only appears once in the book
+                return -1
 
     offsetmap = {}
     offsets = []
