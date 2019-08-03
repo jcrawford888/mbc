@@ -95,18 +95,18 @@ def encrypts(message=None, url=None, method=METHOD_FLEX):
         if method == METHOD_FAST:
             ch = ch.lower()
 
-        offset = _encode_char(ch, book, offsetmap)
-        if offset < 0 and method == METHOD_FLEX:
+        bk_offset = _encode_char(ch, book, offsetmap)
+        if bk_offset < 0 and method == METHOD_FLEX:
             # try again with lower cased char
-            offset = _encode_char(ch.lower(), book, offsetmap)
+            bk_offset = _encode_char(ch.lower(), book, offsetmap)
 
-        if offset < 0:
+        if bk_offset < 0:
             raise ValueError(
                 f"Could not find a character in the book to encode the message character '{ch}'."
             )
 
-        offsetmap[offset] = 1
-        offsets.append(offset)
+        offsetmap[bk_offset] = 1
+        offsets.append(bk_offset)
 
     return offsets
 
@@ -145,6 +145,7 @@ def decrypts(cipher_arr=None, url=None, method=METHOD_FLEX):
 
     :param cipher_arr: The cipher array encrypted using the encryption routine
     :param url: same url as used by the encryption routine
+    :param method: encryption method
     :return: string containing the decrypted message
     """
     if not url:
